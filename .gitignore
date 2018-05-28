@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Scrap notebooks and scripts
+archive/
+Chapter\ 2/Ch2_Bandits_TensorFlow.ipynb
+Chapter\ 2/Ch2_MDPs_old.ipynb
+Chapter\ 3/.ipynb_checkpoints/
+Chapter\ 3/.DS_Store
+Chapter\ 3/Ch3_DQN_old.ipynb
+Chapter\ 3/Ch3_Gridworld_exp.ipynb
+Chapter\ 3/Ch3_Gridworld.ipynb
+Chapter\ 3/Sokoban.py
+Chapter\ 4/Ch4_PolicyGradients_.ipynb
