@@ -53,6 +53,8 @@ ENV/
 env.bak/
 venv.bak/
 
+.idea
+
 # Scrap notebooks and scripts
 archive/
 Chapter\ 2/Ch2_Bandits_TensorFlow.ipynb
