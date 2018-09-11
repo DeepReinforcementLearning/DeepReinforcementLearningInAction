@@ -39,7 +39,7 @@ coverage.xml
 .pytest_cache/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+**/.ipynb_checkpoints
 
 # pyenv
 .python-version
@@ -55,14 +55,5 @@ venv.bak/
 
 .idea
 
-# Scrap notebooks and scripts
-archive/
-Chapter\ 2/Ch2_Bandits_TensorFlow.ipynb
-Chapter\ 2/Ch2_MDPs_old.ipynb
-Chapter\ 3/.ipynb_checkpoints/
-Chapter\ 3/.DS_Store
-Chapter\ 3/Ch3_DQN_old.ipynb
-Chapter\ 3/Ch3_Gridworld_exp.ipynb
-Chapter\ 3/Ch3_Gridworld.ipynb
-Chapter\ 3/Sokoban.py
-Chapter\ 4/Ch4_PolicyGradients_.ipynb
+**/.DS_Store
+
