@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.idea/
 # C extensions
 *.so
 
@@ -57,6 +57,7 @@ venv.bak/
 archive/
 Chapter\ 2/Ch2_Bandits_TensorFlow.ipynb
 Chapter\ 2/Ch2_MDPs_old.ipynb
+Chapter\ 2/.ipynb_checkpoints
 Chapter\ 3/.ipynb_checkpoints/
 Chapter\ 3/.DS_Store
 Chapter\ 3/Ch3_DQN_old.ipynb
@@ -64,3 +65,12 @@ Chapter\ 3/Ch3_Gridworld_exp.ipynb
 Chapter\ 3/Ch3_Gridworld.ipynb
 Chapter\ 3/Sokoban.py
 Chapter\ 4/Ch4_PolicyGradients_.ipynb
+Chapter\ 4/.ipynb_checkpoints
+Sandbox
+Chapter\ 5/
+Chapter\ 6/
+Chapter\ 7/
+Chapter\ 9/
+Chapter\ 10/
+Chapter\ 11/
+Evolutionary
