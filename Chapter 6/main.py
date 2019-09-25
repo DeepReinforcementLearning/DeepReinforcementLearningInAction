@@ -1,123 +1,153 @@
-import torch
-from torch.autograd import Variable
-import numpy as np
-from torch.nn import functional as F
-from matplotlib import pyplot as plt
-import sys
-sys.path.append("../Environments/")
-from Gridworld import Gridworld
-import random
-from tqdm import tqdm
-import math
-from copy import deepcopy
+"""
+python main.py
+"""
 
 from argparse import ArgumentParser
+import torch
+from torch import nn
+import torch.nn.functional as F
+import numpy as np
+import gym
 
-from simulator import SimulatorState, SimulatorReward
-from buffer import ExperienceReplay
+class Agent(object):
+    def __init__(self, env, state_space, action_space, weights=[], max_eps_length=500, trials=5):
+        self.max_eps_length = max_eps_length
+        self.trials = trials
+        state_space = state_space[0] # add batch dimension
+        self.state_space = state_space
+        self.action_space = action_space
 
-action_set = {
-    0: 'u',
-    1: 'd',
-    2: 'l',
-    3: 'r',
-}
+        self.weights = weights if weights else self._get_random_weights()
+        self.fitness = self._get_fitness(env)
+
+    def model(self, x):
+        x = F.relu(torch.add(torch.mm(x, self.weights[0]),self.weights[1]))
+        x = F.relu(torch.add(torch.mm(x, self.weights[2]), self.weights[3]))
+        x = F.softmax(torch.add(torch.mm(x, self.weights[4]), self.weights[5]))
+        return x
+
+    def _get_random_weights(self):
+        return [
+            torch.rand(self.state_space, 10), # fc1 weights
+            torch.rand(10),  # fc1 bias
+            torch.rand(10, 10),  # fc2 weights
+            torch.rand(10),  # fc2 bias
+            torch.rand(10, self.action_space),  # fc3 weights
+            torch.rand(self.action_space),  # fc3 bias
+        ]
+
+    def _get_fitness(self, env):
+        total_reward = 0
+        for _ in range(self.trials):
+            observation = env.reset()
+            for i in range(self.max_eps_length):
+                action = self.get_action(observation)
+                observation, reward, done, info = env.step(action)
+                total_reward += reward
+                if done: break
+        return total_reward / self.trials
+
+    def get_action(self, state):
+        act_prob = self.model(torch.Tensor(state.reshape(1,-1))).detach().numpy()[0] # use predict api when merged
+        action = np.random.choice(range(len(act_prob)), p=act_prob)
+        return action
+
+    def save(self, save_file):
+        self.mod.save_params(save_file)
 
 
-def running_mean(x, N=500):
-    cumsum = np.cumsum(np.insert(x, 0, 0))
-    return (cumsum[N:] - cumsum[:-N]) / float(N)
+def cross(agent1, agent2, agent_config):
+    num_params = len(agent1.weights)
+    crossover_idx = np.random.randint(0, num_params)
+    new_weights = agent1.weights[:crossover_idx] + agent2.weights[crossover_idx:]
+    new_weights = mutate(new_weights)
+    return Agent(weights=new_weights, **agent_config)
 
 
-def encode_game_progress(reward):
-    if reward == 0:
-        return 0  # in progress
-    elif reward == 1:
-        return 1  # won
-    else:
-        return 2  # lost
+def mutate(new_weights):
+    num_params_to_update = np.random.randint(0, num_params)  # num of params to change
+    for i in range(num_params_to_update):
+        n = np.random.randint(0, num_params)
+        new_weights[n] = new_weights[n] + torch.rand(new_weights[n].size())
+    return new_weights
 
 
-def decode_game_progress(index):
-    if index == 0:
-        return 0  # in progress
-    elif index == 1:
-        return 1  # won
-    else:
-        return -1  # lost
+
+def breed(agent1, agent2, agent_config, generation_size=10):
+    next_generation = [agent1, agent2]
+
+    for _ in range(generation_size - 2):
+        next_generation.append(cross(agent1, agent2, agent_config))
+
+    return next_generation
+
+def reproduce(agents, agent_config, generation_size):
+    top_agents = sorted(agents, reverse=True, key=lambda a: a.fitness)[:2]
+    new_agents = breed(top_agents[0], top_agents[1], agent_config, generation_size)
+    return new_agents
 
 
-def convert_to_state(state):
-    s_ = state.reshape(1, 4, 16)
-    s = s_.max(dim=2)
-    output = torch.zeroes(1, 4, 16)
-    output[0][s[0][0]] = 1
-    output[0][s[0][1]] = 1
-    output[0][s[0][2]] = 1
-    output[0][s[0][3]] = 1
-    return output
+def run(n_generations, generation_size, agent_config, save_file=None, render=False):
+    agents = [Agent(**agent_config), Agent(**agent_config)]
+    max_fitness = 0
+    for i in range(n_generations):
+        next_generation = reproduce(agents, agent_config, generation_size)
+        ranked_generation = sorted(next_generation, reverse=True, key=lambda a : a.fitness)
+        avg_fitness = (ranked_generation[0].fitness + ranked_generation[1].fitness) / 2
+        print(i, avg_fitness)
+        agents = next_generation
+        if ranked_generation[0].fitness > max_fitness:
+            max_fitness = ranked_generation[0].fitness
+            # ranked_generation[0].save(args.save_file)
+            test_agent(ranked_generation[0], agent_config, render)
+
+
+def test_agent(agent, agent_config, render):
+    env = agent_config['env']
+    obs = env.reset()
+    total_reward = 0
+    for i in range(agent_config['max_eps_length']):
+        if render: env.render()
+        action = agent.get_action(obs)
+        obs, reward, done, info = env.step(action)
+        total_reward += reward
+        if done: break
+    print('test', total_reward)
+    env.close()
+
 
 
 if __name__ == '__main__':
+    env_names = [e.id for e in gym.envs.registry.all()]
+
     parser = ArgumentParser()
-    parser.add_argument('--use_cuda', action='store_true', default=False)
-    parser.add_argument('--epochs', default=5000, type=int)
-    parser.add_argument('--mode', default='rand', choice=['rand'])
-    parser.add_argument('--warm_up_period', default=1000, type=int)
-    parser.add_argument('--batch_size', default=1000, type=int)
-    parser.add_argument('--max_steps', default=15, type=int)
-    parser.add_argument('--lr', default=0.0015, type=float)
+    parser.add_argument('--n_generations', default=10000)
+    parser.add_argument('--render',  action='store_true')
+    parser.add_argument('--generation_size', default=20)
+    parser.add_argument('--max_eps_length', default=500)
+    parser.add_argument('--trials', default=5)
+    parser.add_argument('--env', default='CartPole-v1', choices=env_names)
+    parser.add_argument('--save_file')
 
     args = parser.parse_args()
-    device = torch.device('cuda' if args.use_cuda else 'cpu')
+    env = gym.make(args.env)
 
-    simulator_s = SimulatorState().to(device)
-    simulator_r = SimulatorReward().to(device)
-    opt_s = torch.optim.Adam(simulator_s.parameters(), lr=args.lr)
-    opt_r = torch.optim.Adam(simulator_r.parameters(), lr=args.lr)
+    agent_config = {
+        'state_space' : env.observation_space.shape,
+        'action_space' : env.action_space.n,
+        'max_eps_length' : args.max_eps_length,
+        'trials' : args.trials,
+        'env': env,
+    }
 
-    loss_fn_state = torch.nn.CrossEntropyLoss()
-    loss_fn_reward = torch.nn.CrossEntropyLoss(weight=torch.Tensor([1, 50, 50]))
-    losses = []
-    buffer = ExperienceReplay()
+    run(args.n_generations, args.generation_size, agent_config, args.save_file, args.render)
 
-    progress = tqdm(range(args.epochs))
-    for epoch_num in progress:
-        game = Gridworld(mode=args.mode)
-        z = 0
-        for step_num in args.max_steps:
-            # get starting state
-            state = torch.from_numpy(game.board.render_np()).float().reshape(64, )
-            # take random action
-            action_ = np.random.randint(0, 4)
-            action = action_set[action_]
-            action_vec = torch.zeros(4, )
-            action_vec[action_] = 1
 
-            game.makeMove(action)
-            next_state = torch.from_numpy(game.board.render_np()).float()
-            reward_ = encode_game_progress(game.reward())
-            buffer.add([(state, action_vec, next_state[0].argmax(), reward_, next_state)])
 
-            if len(buffer) >= args.warm_up_period:
-                minibatch = buffer.sample(args.batch_size)
-                opt_s.zero_grad()
-                opt_r.zero_grad()
-                states, actions, next_states_i, rewards, next_states = zip(*minibatch)
-                states = torch.stack(states).to(device)
-                actions = torch.stack(actions).to(device)
-                pred_states, _ = simulator_s(torch.cat((states, actions), dim=1)).to(device)
-                next_states_i = torch.stack(next_states_i).to(device)
-                pred_rewards = simulator_r(torch.stack(next_states)).to(device)
-                loss_state = loss_fn_state(pred_states, next_states_i)
-                loss_reward = loss_fn_reward(pred_rewards, torch.Tensor(rewards).long())
-                overall_loss = loss_state + loss_reward * 0.5
-                overall_loss.backward()
-                opt_r.step()
-                opt_s.step()
-                progress.set_description(
-                    "{:10.3f} {:10.3f}".format(loss_state.detach().numpy(), loss_reward.detach().numpy()))
-                losses.append([loss_state.detach().numpy(), loss_reward.detach().numpy()])
-            if game.reward() in [1, -1]:
-                break
-    losses = np.array(losses)
+
+
+
+
+
+
+
