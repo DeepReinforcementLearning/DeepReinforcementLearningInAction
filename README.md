@@ -10,8 +10,8 @@ instructions on installing Jupyter Notebooks.
 
 ## Requirements
 
-In order to run many of the projects, you'll need at least the [http://www.numpy.org/](NumPy) library
-and [http://pytorch.org/](PyTorch).
+In order to run many of the projects, you'll need at least the [NumPy](http://www.numpy.org/) library
+and [PyTorch](http://pytorch.org/).
 
 ```
 pip install -r requirements.txt
