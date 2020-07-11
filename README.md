@@ -20,4 +20,4 @@ pip install -r requirements.txt
 ## Contribute
 
 If you experience any issues running the examples, please file an issue.
-If you see typos or other errors in the book, please edit the [Errata.md](https://github.com/DeepReinforcementLearning/DeepReinforcementLearningInAction/edit/master/Errata.md) file and create a pull request.
+If you see typos or other errors in the book, please edit the [Errata.md](https://github.com/DeepReinforcementLearning/DeepReinforcementLearningInAction/blob/master/Errata.md) file and create a pull request.
