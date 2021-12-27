@@ -26,7 +26,8 @@ Text should say: “When we train this network for 10,000 epochs”
 “with probability ε – 1” should be “with probability 1 - ε “
 
 ## Chapter 3
-
+### Listing 3.7
+model2=model2= copy.deepcopy(model)
 ### Listing 3.8 
 First line of code should be: from IPython.display import clear_output
 
