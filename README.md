@@ -19,6 +19,9 @@ and [PyTorch](http://pytorch.org/).
 pip install -r requirements.txt
 ```
 
+## Special Instructions
+In the notebook 9, there's an issue (appearing in the 15th cell) you can solve by following the instructions of @scottmayberry in Farama-Foundation/MAgent2#14. That means to copy all the files and folders from https://github.com/Farama-Foundation/MAgent2/tree/main/magent2 to the local folder <venv_folder>/lib/python3.X/site-packages/magent2 (or similar path if your OS is other than Linux) - Thanks to [donlaiq](https://github.com/donlaiq) for this
+
 ## Contribute
 
 If you experience any issues running the examples, please file an issue.
