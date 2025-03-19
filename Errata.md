@@ -35,7 +35,14 @@ First line of code should be: from IPython.display import clear_output
 ## Chapter 4
 
 
+## Chapter 8
+Text should say: "In this chapter we will learn" instead of "In this chapter you will we learn"
+Figure 8.14: Forward model should have an input for the actions and be concatenated with the encoded state.
+### Listing 8.11
+Code: The if statement related to the use of extrinsic reward should be fixed, "if use_extrinsic" not "if use_explicit", also in its relative balloon annotation. 
 
+## Appendix
+In text above the $f(x,y)=(Ax+By,Cx+Dy)$ should be corrected to "To find $\dot{x}$" from "To find $x$"
 
 
 
